@@ -3,6 +3,7 @@ const { exit } = require('process');
 const express = require('express')
 const path = require('path')
 const fs = require('fs')
+const bodyParser = require('body-parser');
 
 program
     .option('-h, --host <char>', 'server address')
@@ -27,17 +28,18 @@ if(!options.cache) {
 }
 
 const app = express()
+app.use(bodyParser.text());
 
 app.get('/', function (req, res) {
     res.send('Hello World')
 })
 
-app.get(`/notes/:name`, (req, res) => {
+app.get('/notes/:name', (req, res) => {
     const noteName = req.params.name;
-    const cachePath = path.join(options.cache, `${noteName}.txt`);
+    const notePath = path.join(options.cache, `${noteName}.txt`);
 
     try {
-        fs.readFile(cachePath, 'utf-8', (err, data) => {
+        fs.readFile(notePath, 'utf-8', (err, data) => {
             if(err) 
                 res.status(404).send('Нотатка не знайдена');
             res.status(200).send(data)
@@ -45,6 +47,19 @@ app.get(`/notes/:name`, (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Помилка сервера', error })
     }
+})
+
+app.put('/notes/:name', (req, res) => {
+    const noteName = req.params.name;
+    const notePath = path.join(options.cache, `${noteName}.txt`);
+
+    if(!fs.existsSync(notePath)) return res.status(404).send('Нотатка не знайдена');
+    
+    fs.writeFile(notePath, req.body, (err) => {
+        if(err) 
+            res.status(500).json({ message: 'Помилка сервера', error })
+        res.writeHead(201).end('Створено');
+    })
 })
 
 
