@@ -29,6 +29,8 @@ if(!options.cache) {
 
 const app = express()
 app.use(bodyParser.text());
+app.use(express.json());
+
 
 app.get('/', function (req, res) {
     res.send('Hello World')
@@ -38,15 +40,11 @@ app.get('/notes/:name', (req, res) => {
     const noteName = req.params.name;
     const notePath = path.join(options.cache, `${noteName}.txt`);
 
-    try {
-        fs.readFile(notePath, 'utf-8', (err, data) => {
-            if(err) 
-                res.status(404).send('Нотатка не знайдена');
-            res.status(200).send(data)
-        })
-    } catch (error) {
-        res.status(500).json({ message: 'Помилка сервера', error })
-    }
+    fs.readFile(notePath, 'utf-8', (err, data) => {
+        if(err) 
+            res.status(404).send('Нотатка не знайдена');
+        res.status(200).send(data)
+    })
 })
 
 app.put('/notes/:name', (req, res) => {
@@ -55,11 +53,66 @@ app.put('/notes/:name', (req, res) => {
 
     if(!fs.existsSync(notePath)) return res.status(404).send('Нотатка не знайдена');
     
-    fs.writeFile(notePath, req.body, (err) => {
-        if(err) 
-            res.status(500).json({ message: 'Помилка сервера', error })
-        res.writeHead(201).end('Створено');
+    fs.writeFile(notePath, noteContent, 'utf8', (err) => {
+        if (err) {
+            return res.status(500).json({ message: 'Помилка сервера', error: err });
+        }
+
+        // Send a success response after writing
+        res.status(201).send('Нотатка успішно створена');
+    });
+})
+
+app.delete('/notes/:name', (req, res) => {
+    const noteName = req.params.name;
+    const notePath = path.join(options.cache, `${noteName}.txt`);
+
+    fs.unlink(notePath, (err) => {
+        if(err) {
+            if (err.code === 'ENOENT') {
+                res.writeHead(404).end('Нотатку не знайдено');
+            } else {
+                res.status(500).json({ message: 'Помилка сервера', error })
+            }
+        }
+        else {
+            fs.unlink(notePath);
+            res.writeHead(200).end('Нотатку успішно видалено');
+        }
     })
+})
+
+app.post('/write', (req, res) => {
+    const noteName = req.body.note_name;
+    const noteContent = req.body.note;
+    const notePath = path.join(options.cache, `${noteName}.txt`);
+
+    if(fs.existsSync(notePath)) 
+        return res.status(400).send('Нотатка з такою назвою уже існує');
+    else {
+        fs.writeFile(notePath, noteContent, 'utf8', (err) => {
+            if (err) {
+                return res.status(500).json({ message: 'Помилка сервера', error: err });
+            }
+        })
+        res.writeHead(201, { 'Content-Type': 'text/txt' }).send('Нотатка успішно створена');
+    }  
+})
+
+app.get('/notes', (req, res) => {
+    const notesInCache = fs.readdirSync(options.cache)
+    console.log(notesInCache);
+    
+    const notes = notesInCache.map((note) => {
+        const noteName = note;
+        const notePath = path.join(options.cache, noteName);
+        const noteText = fs.readFileSync(notePath, 'utf8');
+        return { 
+            name: noteName, 
+            text: noteText 
+        };
+    });
+    res.status(200).json(notes)
 })
 
 
