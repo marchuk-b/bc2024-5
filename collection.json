@@ -24,7 +24,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:5000/notes/test2",
+					"raw": "http://127.0.0.1:5000/notes/note",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -35,7 +35,7 @@
 					"port": "5000",
 					"path": [
 						"notes",
-						"test2"
+						"note"
 					]
 				}
 			},
@@ -62,7 +62,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:5000/notes/file",
+					"raw": "http://127.0.0.1:5000/notes/note",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -73,7 +73,7 @@
 					"port": "5000",
 					"path": [
 						"notes",
-						"file"
+						"note"
 					]
 				}
 			},
@@ -100,7 +100,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:5000/notes/test2",
+					"raw": "http://127.0.0.1:5000/notes/note",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -111,7 +111,7 @@
 					"port": "5000",
 					"path": [
 						"notes",
-						"test2"
+						"note"
 					]
 				}
 			},
@@ -133,7 +133,7 @@
 					"formdata": [
 						{
 							"key": "note_name",
-							"value": "test2",
+							"value": "note",
 							"type": "text"
 						},
 						{

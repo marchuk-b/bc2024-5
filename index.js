@@ -41,7 +41,7 @@ app.get('/notes/:name', (req, res) => {
     const noteName = req.params.name;
     const notePath = path.join(options.cache, `${noteName}.txt`);
 
-    fs.readFile(notePath, 'utf-8', (err, data) => {
+    fs.readFile(notePath, 'utf8', (err, data) => {
         if(err) 
             res.status(404).send('Нотатка не знайдена');
         res.status(200).send(data)
@@ -51,6 +51,7 @@ app.get('/notes/:name', (req, res) => {
 app.put('/notes/:name', (req, res) => {
     const noteName = req.params.name;
     const notePath = path.join(options.cache, `${noteName}.txt`);
+    const noteContent = req.body;
 
     if(!fs.existsSync(notePath)) return res.status(404).send('Нотатка не знайдена');
     
