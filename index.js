@@ -1,9 +1,10 @@
 const { program } = require('commander')
-const { exit } = require('process');
+const { exit } = require('process')
 const express = require('express')
 const path = require('path')
 const fs = require('fs')
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser')
+const multer = require('multer')
 
 program
     .option('-h, --host <char>', 'server address')
@@ -29,7 +30,7 @@ if(!options.cache) {
 
 const app = express()
 app.use(bodyParser.text());
-app.use(express.json());
+app.use(multer().none());
 
 
 app.get('/', function (req, res) {
@@ -76,7 +77,6 @@ app.delete('/notes/:name', (req, res) => {
             }
         }
         else {
-            fs.unlink(notePath);
             res.writeHead(200).end('Нотатку успішно видалено');
         }
     })
@@ -85,27 +85,32 @@ app.delete('/notes/:name', (req, res) => {
 app.post('/write', (req, res) => {
     const noteName = req.body.note_name;
     const noteContent = req.body.note;
+
+    if (!noteContent) {
+        return res.status(400).send('Вміст нотатки не може бути порожнім');
+    }
+
     const notePath = path.join(options.cache, `${noteName}.txt`);
 
-    if(fs.existsSync(notePath)) 
+    if (fs.existsSync(notePath)) {
         return res.status(400).send('Нотатка з такою назвою уже існує');
-    else {
+    } else {
         fs.writeFile(notePath, noteContent, 'utf8', (err) => {
             if (err) {
                 return res.status(500).json({ message: 'Помилка сервера', error: err });
             }
-        })
-        res.writeHead(201, { 'Content-Type': 'text/txt' }).send('Нотатка успішно створена');
+            res.status(201).send('Нотатка успішно створена');
+        });
     }  
-})
+});
 
 app.get('/notes', (req, res) => {
     const notesInCache = fs.readdirSync(options.cache)
     console.log(notesInCache);
     
     const notes = notesInCache.map((note) => {
-        const noteName = note;
-        const notePath = path.join(options.cache, noteName);
+        const noteName = path.basename(note, '.txt');
+        const notePath = path.join(options.cache, note);
         const noteText = fs.readFileSync(notePath, 'utf8');
         return { 
             name: noteName, 
@@ -113,6 +118,12 @@ app.get('/notes', (req, res) => {
         };
     });
     res.status(200).json(notes)
+})
+
+app.get('/UploadForm.html', (req, res) => {
+    const htmlPage = fs.readFileSync('.' + '/UploadForm.html')
+    res.writeHead(200, { 'Content-Type': 'text/html' })
+    res.end(htmlPage)
 })
 
 
