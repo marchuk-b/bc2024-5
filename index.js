@@ -3,6 +3,7 @@ const { exit } = require('process')
 const express = require('express')
 const path = require('path')
 const fs = require('fs')
+
 const bodyParser = require('body-parser')
 const multer = require('multer')
 
@@ -17,15 +18,15 @@ const options = program.opts();
 
 if(!options.host) {
     console.error("Please enter host");
-    exit();
+    exit(1);
 }
 if(!options.port) {
     console.error("Please enter port");
-    exit();
+    exit(1);
 }
 if(!options.cache) {
     console.error("Enter path to cache directory");
-    exit();
+    exit(1);
 }
 
 const app = express()
@@ -60,7 +61,6 @@ app.put('/notes/:name', (req, res) => {
             return res.status(500).json({ message: 'Помилка сервера', error: err });
         }
 
-        // Send a success response after writing
         res.status(201).send('Нотатка успішно створена');
     });
 })
@@ -96,7 +96,7 @@ app.post('/write', (req, res) => {
     if (fs.existsSync(notePath)) {
         return res.status(400).send('Нотатка з такою назвою уже існує');
     } else {
-        fs.writeFile(notePath, noteContent, 'utf8', (err) => {
+        fs.writeFile(notePath, noteContent, 'utf-8', (err) => {
             if (err) {
                 return res.status(500).json({ message: 'Помилка сервера', error: err });
             }
@@ -122,14 +122,10 @@ app.get('/notes', (req, res) => {
 })
 
 app.get('/UploadForm.html', (req, res) => {
-    const htmlPage = fs.readFileSync('.' + '/UploadForm.html')
+    const htmlPage = fs.readFileSync('./UploadForm.html')
     res.writeHead(200, { 'Content-Type': 'text/html' })
     res.end(htmlPage)
 })
-
-
-
-
 
 
 app.listen(options.port, options.host, (req, res) => {
